@@ -35,6 +35,7 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
 @end
 
 @implementation SWTableViewCell
+@synthesize cellState = _cellState;
 
 #pragma mark Initializers
 
