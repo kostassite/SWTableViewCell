@@ -12,15 +12,15 @@
 #import "SWLongPressGestureRecognizer.h"
 #import "SWUtilityButtonTapGestureRecognizer.h"
 #import "NSMutableArray+SWUtilityButtons.h"
-#import "SWConstants.h"
 
 @class SWTableViewCell;
 
-typedef enum {
+typedef NS_ENUM(NSInteger, SWCellState)
+{
     kCellStateCenter,
     kCellStateLeft,
-    kCellStateRight
-} SWCellState;
+    kCellStateRight,
+};
 
 @protocol SWTableViewCellDelegate <NSObject>
 
@@ -30,6 +30,8 @@ typedef enum {
 - (void)swipeableTableViewCell:(SWTableViewCell *)cell scrollingToState:(SWCellState)state;
 - (BOOL)swipeableTableViewCellShouldHideUtilityButtonsOnSwipe:(SWTableViewCell *)cell;
 - (BOOL)swipeableTableViewCell:(SWTableViewCell *)cell canSwipeToState:(SWCellState)state;
+- (void)swipeableTableViewCellDidEndScrolling:(SWTableViewCell *)cell;
+- (void)swipeableTableViewCell:(SWTableViewCell *)cell didScroll:(UIScrollView *)scrollView;
 
 @end
 
@@ -42,11 +44,13 @@ typedef enum {
 @property (nonatomic, weak) UITableView *containingTableView;
 @property (nonatomic) SWCellState cellState;
 
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier containingTableView:(UITableView *)containingTableView leftUtilityButtons:(NSArray *)leftUtilityButtons rightUtilityButtons:(NSArray *)rightUtilityButtons;
 
-- (void)setCellHeight:(CGFloat)height;
-- (void)setBackgroundColor:(UIColor *)backgroundColor;
+- (void)setRightUtilityButtons:(NSArray *)rightUtilityButtons WithButtonWidth:(CGFloat) width;
+- (void)setLeftUtilityButtons:(NSArray *)leftUtilityButtons WithButtonWidth:(CGFloat) width;
 - (void)hideUtilityButtonsAnimated:(BOOL)animated;
-- (void)setAppearanceWithBlock:(void (^) ())appearanceBlock force:(BOOL)force;
+- (void)showLeftUtilityButtonsAnimated:(BOOL)animated;
+- (void)showRightUtilityButtonsAnimated:(BOOL)animated;
+
+- (BOOL)isUtilityButtonsHidden;
 
 @end

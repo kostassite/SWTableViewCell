@@ -26,8 +26,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.tableView.delegate = self;
-    self.tableView.dataSource = self;
+    self.navigationItem.leftBarButtonItem = self.editButtonItem;
     self.tableView.rowHeight = 90;
     
     self.navigationItem.title = @"Pull to Toggle Cell Type";
@@ -36,13 +35,12 @@
     UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
     [refreshControl addTarget:self action:@selector(toggleCells:) forControlEvents:UIControlEventValueChanged];
     refreshControl.tintColor = [UIColor blueColor];
-    
-    [self.tableView addSubview:refreshControl];
-    self.refreshControl = refreshControl;
 
+    self.refreshControl = refreshControl;
+    
     // If you set the seperator inset on iOS 6 you get a NSInvalidArgumentException...weird
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7) {
-       self.tableView.separatorInset = UIEdgeInsetsMake(0, 0, 0, 0); // Makes the horizontal row seperator stretch the entire length of the table view
+        self.tableView.separatorInset = UIEdgeInsetsMake(0, 0, 0, 0); // Makes the horizontal row seperator stretch the entire length of the table view
     }
     
     _sections = [[UILocalizedIndexedCollation currentCollation] sectionIndexTitles];
@@ -72,10 +70,12 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSLog(@"cell selected at index path %d:%d", indexPath.section, indexPath.row);
+    NSLog(@"cell selected at index path %ld:%ld", (long)indexPath.section, (long)indexPath.row);
     NSLog(@"selected cell index path is %@", [self.tableView indexPathForSelectedRow]);
     
-    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    if (!tableView.isEditing) {
+        [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    }
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
@@ -116,21 +116,14 @@
     
     if (self.useCustomCells)
     {
-        
         UMTableViewCell *cell = [self.tableView dequeueReusableCellWithIdentifier:@"UMCell" forIndexPath:indexPath];
         
-        UMTableViewCell __weak *weakCell = cell;
-                
-        [cell setAppearanceWithBlock:^{
-            weakCell.leftUtilityButtons = [self leftButtons];
-            weakCell.rightUtilityButtons = [self rightButtons];
-            weakCell.delegate = self;
-            weakCell.containingTableView = tableView;
-        } force:NO];
+        // optionally specify a width that each set of utility buttons will share
+        [cell setLeftUtilityButtons:[self leftButtons] WithButtonWidth:32.0f];
+        [cell setRightUtilityButtons:[self rightButtons] WithButtonWidth:58.0f];
+        cell.delegate = self;
         
-        [cell setCellHeight:cell.frame.size.height];
-
-        cell.label.text = [NSString stringWithFormat:@"Section: %d, Seat: %d", indexPath.section, indexPath.row];
+        cell.label.text = [NSString stringWithFormat:@"Section: %ld, Seat: %ld", (long)indexPath.section, (long)indexPath.row];
         
         return cell;
     }
@@ -142,11 +135,10 @@
         
         if (cell == nil) {
             
-            cell = [[SWTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle
-                                          reuseIdentifier:cellIdentifier
-                                      containingTableView:_tableView // Used for row height and selection
-                                       leftUtilityButtons:[self leftButtons]
-                                      rightUtilityButtons:[self rightButtons]];
+            cell = [[SWTableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:cellIdentifier];
+            
+            cell.leftUtilityButtons = [self leftButtons];
+            cell.rightUtilityButtons = [self rightButtons];
             cell.delegate = self;
         }
         
@@ -155,7 +147,7 @@
         cell.textLabel.backgroundColor = [UIColor whiteColor];
         cell.detailTextLabel.backgroundColor = [UIColor whiteColor];
         cell.detailTextLabel.text = @"Some detail text";
-
+        
         return cell;
     }
     
@@ -170,7 +162,7 @@
     [rightUtilityButtons sw_addUtilityButtonWithColor:
      [UIColor colorWithRed:1.0f green:0.231f blue:0.188 alpha:1.0f]
                                                 title:@"Delete"];
-
+    
     return rightUtilityButtons;
 }
 
@@ -210,7 +202,25 @@
 
 #pragma mark - SWTableViewDelegate
 
-- (void)swipeableTableViewCell:(SWTableViewCell *)cell didTriggerLeftUtilityButtonWithIndex:(NSInteger)index {
+- (void)swipeableTableViewCell:(SWTableViewCell *)cell scrollingToState:(SWCellState)state
+{
+    switch (state) {
+        case 0:
+            NSLog(@"utility buttons closed");
+            break;
+        case 1:
+            NSLog(@"left utility buttons open");
+            break;
+        case 2:
+            NSLog(@"right utility buttons open");
+            break;
+        default:
+            break;
+    }
+}
+
+- (void)swipeableTableViewCell:(SWTableViewCell *)cell didTriggerLeftUtilityButtonWithIndex:(NSInteger)index
+{
     switch (index) {
         case 0:
             NSLog(@"left button 0 was pressed");
@@ -228,14 +238,15 @@
     }
 }
 
-- (void)swipeableTableViewCell:(SWTableViewCell *)cell didTriggerRightUtilityButtonWithIndex:(NSInteger)index {
+- (void)swipeableTableViewCell:(SWTableViewCell *)cell didTriggerRightUtilityButtonWithIndex:(NSInteger)index
+{
     switch (index) {
         case 0:
         {
             NSLog(@"More button was pressed");
             UIAlertView *alertTest = [[UIAlertView alloc] initWithTitle:@"Hello" message:@"More more more" delegate:nil cancelButtonTitle:@"cancel" otherButtonTitles: nil];
             [alertTest show];
-        
+            
             [cell hideUtilityButtonsAnimated:YES];
             break;
         }
@@ -253,8 +264,29 @@
     }
 }
 
-- (BOOL)swipeableTableViewCellShouldHideUtilityButtonsOnSwipe:(SWTableViewCell *)cell {
+- (BOOL)swipeableTableViewCellShouldHideUtilityButtonsOnSwipe:(SWTableViewCell *)cell
+{
+    // allow just one cell's utility button to be open at once
     return YES;
 }
+
+- (BOOL)swipeableTableViewCell:(SWTableViewCell *)cell canSwipeToState:(SWCellState)state
+{
+    switch (state) {
+        case 1:
+            // set to NO to disable all left utility buttons appearing
+            return YES;
+            break;
+        case 2:
+            // set to NO to disable all right utility buttons appearing
+            return YES;
+            break;
+        default:
+            break;
+    }
+    
+    return YES;
+}
+
 
 @end
