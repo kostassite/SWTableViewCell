@@ -469,9 +469,9 @@ static NSString * const kTableViewPanState = @"state";
 {
     SWUtilityButtonTapGestureRecognizer *utilityButtonTapGestureRecognizer = (SWUtilityButtonTapGestureRecognizer *)sender;
     NSUInteger utilityButtonIndex = utilityButtonTapGestureRecognizer.buttonIndex;
-    if ([self.delegate respondsToSelector:@selector(swipeableTableViewCell:didTriggerRightUtilityButtonWithIndex:)])
+    if ([self.delegate respondsToSelector:@selector(swipeableTableViewCell:didTriggerRightUtilityButtonWithIndex:andTag:)])
     {
-        [self.delegate swipeableTableViewCell:self didTriggerRightUtilityButtonWithIndex:utilityButtonIndex];
+        [self.delegate swipeableTableViewCell:self didTriggerRightUtilityButtonWithIndex:utilityButtonIndex andTag:utilityButtonTapGestureRecognizer.view.tag];
     }
 }
 
@@ -479,9 +479,9 @@ static NSString * const kTableViewPanState = @"state";
 {
     SWUtilityButtonTapGestureRecognizer *utilityButtonTapGestureRecognizer = (SWUtilityButtonTapGestureRecognizer *)sender;
     NSUInteger utilityButtonIndex = utilityButtonTapGestureRecognizer.buttonIndex;
-    if ([self.delegate respondsToSelector:@selector(swipeableTableViewCell:didTriggerLeftUtilityButtonWithIndex:)])
+    if ([self.delegate respondsToSelector:@selector(swipeableTableViewCell:didTriggerLeftUtilityButtonWithIndex:andTag:)])
     {
-        [self.delegate swipeableTableViewCell:self didTriggerLeftUtilityButtonWithIndex:utilityButtonIndex];
+        [self.delegate swipeableTableViewCell:self didTriggerLeftUtilityButtonWithIndex:utilityButtonIndex andTag:utilityButtonTapGestureRecognizer.view.tag];
     }
 }
 
