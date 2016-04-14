@@ -25,6 +25,7 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
 @property (nonatomic, strong) SWUtilityButtonView *leftUtilityButtonsView, *rightUtilityButtonsView;
 @property (nonatomic, strong) UIView *leftUtilityClipView, *rightUtilityClipView;
 @property (nonatomic, strong) NSLayoutConstraint *leftUtilityClipConstraint, *rightUtilityClipConstraint;
+@property (nonatomic, strong) NSLayoutConstraint *rightUtilityBtnTrailingConstraint;
 
 @property (nonatomic, strong) UILongPressGestureRecognizer *longPressGestureRecognizer;
 @property (nonatomic, strong) UITapGestureRecognizer *tapGestureRecognizer;
@@ -164,11 +165,16 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
                                ]];
         
         [clipView addSubview:buttonView];
+        
+        NSLayoutConstraint *alignmentConstraint = [NSLayoutConstraint constraintWithItem:buttonView attribute:alignmentAttribute relatedBy:NSLayoutRelationEqual toItem:clipView attribute:alignmentAttribute multiplier:1.0 constant:0.0];
+        if (i == 0) {
+            self.rightUtilityBtnTrailingConstraint = alignmentConstraint;
+        }
         [self addConstraints:@[
                                // Pin the button view to the appropriate outer edges of its clipping view.
                                [NSLayoutConstraint constraintWithItem:buttonView attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:clipView attribute:NSLayoutAttributeTop multiplier:1.0 constant:0.0],
                                [NSLayoutConstraint constraintWithItem:buttonView attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:clipView attribute:NSLayoutAttributeBottom multiplier:1.0 constant:0.0],
-                               [NSLayoutConstraint constraintWithItem:buttonView attribute:alignmentAttribute relatedBy:NSLayoutRelationEqual toItem:clipView attribute:alignmentAttribute multiplier:1.0 constant:0.0],
+                               alignmentConstraint,
                                
                                // Constrain the maximum button width so that at least a button's worth of contentView is left visible. (The button view will shrink accordingly.)
                                [NSLayoutConstraint constraintWithItem:buttonView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationLessThanOrEqual toItem:self.contentView attribute:NSLayoutAttributeWidth multiplier:1.0 constant:-kUtilityButtonWidthDefault],
@@ -204,6 +210,7 @@ static NSString * const kTableViewPanState = @"state";
         {
             NSArray *indices = [_containingTableView.dataSource sectionIndexTitlesForTableView:_containingTableView];
             self.additionalRightPadding = indices == nil ? 0 : kSectionIndexWidth;
+            self.rightUtilityBtnTrailingConstraint.constant = -1 * self.additionalRightPadding;
         }
         
         _containingTableView.directionalLockEnabled = YES;
