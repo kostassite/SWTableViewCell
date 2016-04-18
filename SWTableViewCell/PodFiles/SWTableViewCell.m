@@ -33,6 +33,7 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
 - (CGFloat)leftUtilityButtonsWidth;
 - (CGFloat)rightUtilityButtonsWidth;
 - (CGFloat)utilityButtonsPadding;
+- (CGFloat)scrolledStateMinimumShowingWidth;
 
 - (CGPoint)contentOffsetForCellState:(SWCellState)state;
 - (void)updateCellState;
@@ -177,7 +178,7 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
                                alignmentConstraint,
                                
                                // Constrain the maximum button width so that at least a button's worth of contentView is left visible. (The button view will shrink accordingly.)
-                               [NSLayoutConstraint constraintWithItem:buttonView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationLessThanOrEqual toItem:self.contentView attribute:NSLayoutAttributeWidth multiplier:1.0 constant:-kUtilityButtonWidthDefault],
+                               [NSLayoutConstraint constraintWithItem:buttonView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationLessThanOrEqual toItem:self.contentView attribute:NSLayoutAttributeWidth multiplier:1.0 constant:-self.scrolledStateMinimumShowingWidth],
                                ]];
     }
 }
@@ -583,6 +584,10 @@ static NSString * const kTableViewPanState = @"state";
     }
     
     return scrollPt;
+}
+
+-(CGFloat)scrolledStateMinimumShowingWidth{
+    return kUtilityButtonWidthDefault;
 }
 
 - (void)updateCellState
